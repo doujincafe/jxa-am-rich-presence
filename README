@@ -1,0 +1,25 @@
+============================================
+jxa-apple-music discord rich presence client
+============================================
+
+Apple Music Rich Presence for macOS. Supports Intel and ARM-based macs.
+
+=========
+Downloads
+=========
+
+Downloads available at RELEASES.
+
+================
+Self-compilation
+================
+
+You need Node.js and npm/pnpm
+
+Run "npm run build" or "pnpm run build" to build. This will build both x64 and ARM executables
+
+=======
+LICENSE
+=======
+
+licensed under MIT.
