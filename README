@@ -10,6 +10,46 @@ Downloads
 
 Downloads available at RELEASES.
 
+=====
+Usage
+=====
+
+Edit the config.ts file and configure the following:
+
+- clientId
+- clientLargeImageDefault
+- clientLargeImageText
+- playbackAssets.playing
+- playbackAssets.paused
+- playbackAssets.stopped
+
+Then finally build the client by running "npm run build" or "pnpm run build"
+
+==================
+About Image Upload
+==================
+
+Image upload server code is available in src-server. Configure the server by
+modifying the appsettings.json file:
+
+- CredentialConfiguration.Username  -> the SHA-256 hash of your username
+- CredentialConfiguration.Password  -> the SHA-256 hash of your password
+
+Then you can deploy it to your hosting provider, or even locally and use tunnels
+such as ngrok.
+
+And finally you also configure the client as well:
+
+- enableUploader to true            -> this will enable the uploader
+- serverHostname                    -> the hostname of your server.
+- serverUsername                    -> the username you configured at the server
+- serverPassword                    -> the password you configured at the server
+
+Then finally build the client by running "npm run build" or "pnpm run build"
+
+For the developers, you can modify the Uploader.ts to your liking :) in case you
+want to use imgur or other image hosting providers.
+
 ================
 Self-compilation
 ================

@@ -1,18 +1,17 @@
 import "@jxa/global-type";
 import {run} from "@jxa/run";
 import {DateTime} from "luxon";
+import Cache from "./Cache";
 import ConsoleLogger from "./logger/ConsoleLogger";
 import DiscordRichPresence, {RichPresenceContents} from "./DiscordRichPresence";
+import Uploader from "./Uploader";
+import {Application as InternalApplicationType} from "@jxa/types";
+import config from '../config';
 
-const RICH_PRESENCE_ID = '944568808276897862';
-const LARGE_IMAGE_KEY = 'main_art';
-const LARGE_IMAGE_TEXT = 'Apple Music on macOS';
-const PLAYING_ART = 'music_play';
-const PAUSED_ART = 'music_pause';
-const STOPPED_ART = 'music_stop';
-
+const cache = new Cache();
 const logger = new ConsoleLogger();
-const richPresence = new DiscordRichPresence(RICH_PRESENCE_ID, logger);
+const richPresence = new DiscordRichPresence(config.clientId, logger);
+const uploader = new Uploader(cache, logger);
 
 let started = false;
 
@@ -44,7 +43,7 @@ async function runPresence() {
 
         try {
             const app = await run((): MusicStatus | StatusOnly => {
-                const music = Application('Music');
+                const music = Application('Music') as unknown as InternalApplicationType._iTunes;
 
                 // When player is stopped, do not continue.
                 if (music.playerState() === 'stopped') return { playbackStatus: 'stopped' };
@@ -64,9 +63,9 @@ async function runPresence() {
                 richPresence.applyState({
                     state: 'Idle',
                     details: 'Player at idle state.',
-                    largeImageKey: LARGE_IMAGE_KEY,
-                    largeImageText: LARGE_IMAGE_TEXT,
-                    smallImageKey: STOPPED_ART,
+                    largeImageKey: config.clientLargeImageDefault,
+                    largeImageText: config.clientLargeImageText,
+                    smallImageKey: config.playbackAssets.stopped,
                     smallImageText: 'Stopped',
                     instance: false
                 });
@@ -75,13 +74,20 @@ async function runPresence() {
             }
 
             const playback = app as MusicStatus;
+
+            const resource = cache.getCache(playback.album);
+            if (!resource) {
+                uploader.uploadArt(playback.album)
+                    .catch(e => logger.writeWarning('Failed to upload art.', e.message));
+            }
+
             const state: RichPresenceContents = {
                 details: playback.album,
                 state: `${playback.artist} - ${playback.title}`,
-                largeImageKey: LARGE_IMAGE_KEY,
-                largeImageText: LARGE_IMAGE_TEXT,
-                smallImageKey: playback.playbackStatus === 'playing' ? PLAYING_ART : PAUSED_ART,
-                smallImageText: playback.playbackStatus === 'playing' ? PLAYING_ART : PAUSED_ART,
+                largeImageKey: resource ?? config.clientLargeImageDefault,
+                largeImageText: playback.album,
+                smallImageKey: playback.playbackStatus === 'playing' ? config.playbackAssets.playing : config.playbackAssets.paused,
+                smallImageText: playback.playbackStatus === 'playing' ? 'Playing' : 'Paused',
                 instance: false
             };
 
