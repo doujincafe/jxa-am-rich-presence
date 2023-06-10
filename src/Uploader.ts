@@ -4,12 +4,14 @@ import crypto from 'crypto';
 import fetchAlbumArt from "./applescript/fetchAlbumArt";
 import ILogger from "./logger/ILogger";
 import config from '../config';
+import {DateTime} from "luxon";
 
 export default class Uploader {
     private _uploaderInstance: AxiosInstance | null = null;
     private readonly _cache: Cache;
     private readonly _baseURL: string = config.serverHostname;
     private readonly _logger: ILogger;
+    private _nextUpdate: number = 0;
 
     private readonly _username: string = config.serverUsername;
     private readonly _password: string = config.serverPassword;
@@ -19,17 +21,6 @@ export default class Uploader {
         this._logger = logger;
 
         if (!config.enableUploader) return;
-
-        this.refreshJob()
-            .then(() => {
-                logger.writeInfo("Authenticated. Uploader is now active.");
-                setInterval(() => {
-                    this.refreshJob()
-                        .then(() => logger.writeInfo("Authentication refreshed."))
-                        .catch(() => logger.writeError("Unable to refresh authentication for upload."))
-                }, 5*60*1000)
-            })
-            .catch(() => {});
     }
 
     private async refreshJob() {
@@ -43,11 +34,26 @@ export default class Uploader {
                 }
             });
         }
+
+        this._nextUpdate = DateTime.now().plus({ minute: 5 }).toJSDate().getTime();
+    }
+
+    private async checkForRefresh() {
+        if (!this._nextUpdate) {
+            return await this.refreshJob();
+        }
+
+        if (DateTime.now().toJSDate().getTime() > this._nextUpdate) {
+            return await this.refreshJob();
+        }
     }
 
     async uploadArt(albumName: string) {
         if (!config.enableUploader) return;
         if (!this._uploaderInstance) return;
+
+        // Refresh session to avoid refresh when times it is inactive.
+        await this.checkForRefresh();
 
         const name = crypto.createHash('sha1')
             .update(albumName, 'utf-8')
