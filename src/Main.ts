@@ -76,7 +76,7 @@ async function runPresence() {
             const playback = app as MusicStatus;
 
             const resource = cache.getCache(playback.album);
-            if (!resource) {
+            if (!resource && config.enableUploader) {
                 uploader.uploadArt(playback.album)
                     .catch(e => logger.writeWarning('Failed to upload art.', e.message));
             }

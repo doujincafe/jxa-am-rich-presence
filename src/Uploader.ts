@@ -19,8 +19,6 @@ export default class Uploader {
     constructor(cache: Cache, logger: ILogger) {
         this._cache = cache;
         this._logger = logger;
-
-        if (!config.enableUploader) return;
     }
 
     private async refreshJob() {
@@ -36,24 +34,21 @@ export default class Uploader {
         }
 
         this._nextUpdate = DateTime.now().plus({ minute: 5 }).toJSDate().getTime();
+        this._logger.writeInfo('Token updated. Next update:', this._nextUpdate.toString());
     }
 
     private async checkForRefresh() {
-        if (!this._nextUpdate) {
-            return await this.refreshJob();
-        }
-
-        if (DateTime.now().toJSDate().getTime() > this._nextUpdate) {
+        if (!this._uploaderInstance || DateTime.now().toJSDate().getTime() > this._nextUpdate) {
             return await this.refreshJob();
         }
     }
 
     async uploadArt(albumName: string) {
-        if (!config.enableUploader) return;
-        if (!this._uploaderInstance) return;
-
         // Refresh session to avoid refresh when times it is inactive.
         await this.checkForRefresh();
+
+        // Do not continue when uploader instance is not set after token refresh.
+        if (!this._uploaderInstance || DateTime.now().toJSDate().getTime() > this._nextUpdate) return;
 
         const name = crypto.createHash('sha1')
             .update(albumName, 'utf-8')
