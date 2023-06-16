@@ -1,20 +1,21 @@
 import axios, {AxiosInstance} from "axios";
-import Cache from './Cache';
+import Cache from '../Cache.js';
 import crypto from 'crypto';
-import fetchAlbumArt from "./applescript/fetchAlbumArt";
-import ILogger from "./logger/ILogger";
-import config from '../config';
+import fetchAlbumArt from "../applescript/fetchAlbumArt";
+import ILogger from "../logger/ILogger";
+import config from '../../config';
 import {DateTime} from "luxon";
+import {IUploader} from "./IUploader";
 
-export default class Uploader {
+export default class Uploader implements IUploader {
     private _uploaderInstance: AxiosInstance | null = null;
     private readonly _cache: Cache;
-    private readonly _baseURL: string = config.serverHostname;
     private readonly _logger: ILogger;
     private _nextUpdate: number = 0;
 
-    private readonly _username: string = config.serverUsername;
-    private readonly _password: string = config.serverPassword;
+    private readonly _baseURL: string = config.uploader.custom.serverHostname;
+    private readonly _username: string = config.uploader.custom.serverUsername;
+    private readonly _password: string = config.uploader.custom.serverPassword;
 
     constructor(cache: Cache, logger: ILogger) {
         this._cache = cache;
@@ -45,7 +46,11 @@ export default class Uploader {
 
     async uploadArt(albumName: string) {
         // Refresh session to avoid refresh when times it is inactive.
-        await this.checkForRefresh();
+        try {
+            await this.checkForRefresh();
+        } catch (e) {
+            this._uploaderInstance = null;
+        }
 
         // Do not continue when uploader instance is not set after token refresh.
         if (!this._uploaderInstance || DateTime.now().toJSDate().getTime() > this._nextUpdate) return;
@@ -63,7 +68,6 @@ export default class Uploader {
 
             await this._uploaderInstance.post('/api/upload', form);
             await this._cache.addItemToCache(name, `${this._baseURL}/api/image/${name}`);
-            this._logger.writeInfo("Successfully uploaded with id:", name);
         } catch (e: any) {
             this._logger.writeWarning("Unable to upload:", e.message);
         }

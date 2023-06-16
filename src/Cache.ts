@@ -2,7 +2,6 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import config from '../config';
 
 interface ArtCache {
     [key: string]: string
@@ -27,8 +26,6 @@ export default class Cache {
     }
 
     addItemToCache(id: string, resourcePath: string) {
-        if (!config.enableUploader) return;
-
         if (!this._albumArtCache[id]) {
             this._albumArtCache[id] = resourcePath;
         }
@@ -39,13 +36,15 @@ export default class Cache {
     }
 
     getCache(albumName: string): string | null {
-        if (!config.enableUploader) return null;
-
         const id = crypto.createHash('sha1')
             .update(albumName, 'utf-8')
             .digest('hex');
 
         if (!this._albumArtCache[id]) return null;
         return this._albumArtCache[id];
+    }
+
+    getCacheLocation(): string {
+        return this._artCacheLocation;
     }
 }

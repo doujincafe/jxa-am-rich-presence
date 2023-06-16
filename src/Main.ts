@@ -4,14 +4,18 @@ import {DateTime} from "luxon";
 import Cache from "./Cache";
 import ConsoleLogger from "./logger/ConsoleLogger";
 import DiscordRichPresence, {RichPresenceContents} from "./DiscordRichPresence";
-import Uploader from "./Uploader";
+import Uploader from "./uploaders/Uploader";
 import {Application as InternalApplicationType} from "@jxa/types";
 import config from '../config';
+import ImgurUploader from "./uploaders/ImgurUploader";
+import {IUploader} from "./uploaders/IUploader";
 
 const cache = new Cache();
 const logger = new ConsoleLogger();
 const richPresence = new DiscordRichPresence(config.clientId, logger);
-const uploader = new Uploader(cache, logger);
+const uploader: IUploader = config.uploader.use === 'imgur'
+    ? new ImgurUploader(cache, logger)
+    : new Uploader(cache, logger);
 
 let started = false;
 
@@ -76,7 +80,7 @@ async function runPresence() {
             const playback = app as MusicStatus;
 
             const resource = cache.getCache(playback.album);
-            if (!resource && config.enableUploader) {
+            if (!resource && config.uploader.enabled) {
                 uploader.uploadArt(playback.album)
                     .catch(e => logger.writeWarning('Failed to upload art.', e.message));
             }

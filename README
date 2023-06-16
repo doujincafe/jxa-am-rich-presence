@@ -25,9 +25,21 @@ Edit the config.ts file and configure the following:
 
 Then finally build the client by running "npm run build" or "pnpm run build"
 
-==================
-About Image Upload
-==================
+===========================
+About Image Upload (Imgur)
+===========================
+
+Image upload for imgur is now available. You can enable it by configuring:
+
+- uploader.enabled = true
+- uploader.use = 'imgur'
+- uploader.imgur.clientId = ''      -> Your imgur application ID
+
+Then finally build the client by running "npm run build" or "pnpm run build"
+
+===========================
+About Image Upload (Custom)
+===========================
 
 Image upload server code is available in src-server. Configure the server by
 modifying the appsettings.json file:
