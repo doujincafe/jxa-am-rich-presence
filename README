@@ -35,6 +35,9 @@ Image upload for imgur is now available. You can enable it by configuring:
 - uploader.use = 'imgur'
 - uploader.imgur.clientId = ''      -> Your imgur application ID
 
+NOTE: When setting up your application, ensure that your Oauth2 callback url is set to:
+http://localhost:53918/callback
+
 Then finally build the client by running "npm run build" or "pnpm run build"
 
 ===========================
