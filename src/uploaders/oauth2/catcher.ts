@@ -1,7 +1,5 @@
 import http from 'http';
 import child_process from "child_process";
-import fs from 'fs';
-import path from 'path';
 import * as qs from 'querystring';
 
 function validateOauthRequest(object: Oauth2Response) {
@@ -16,18 +14,37 @@ export type Oauth2Response = {
     refresh_token: string;
 }
 
+const callbackPage = `
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Authentication</title>
+</head>
+<body>
+    <p>Authentication Received.</p>
+    <script>
+        var x = document.URL.slice(document.URL.indexOf('#') + 1)
+        fetch('/api-callback?' + x).catch(console.error);
+    </script>
+</body>
+</html>
+`;
+
 export default async function catcher(oauthUrl: string): Promise<Oauth2Response> {
     return new Promise((resolve, reject) => {
         child_process.exec(`open "${oauthUrl}"`);
 
-        const web = fs.readFileSync(path.join(__dirname, './index.html'));
         const srv = http.createServer((req, res) => {
             const url = req.url ?? '';
 
             // Show callback
             if (url.indexOf('/callback') >= 0) {
                 res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.write(web);
+                res.write(callbackPage);
                 res.end();
 
                 return;
