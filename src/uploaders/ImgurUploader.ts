@@ -39,6 +39,7 @@ export default class ImgurUploader implements IUploader {
                 if (json.access_token && json.expires_in > DateTime.now().toJSDate().getTime()) {
                     this._secret = json;
                     this._enabled = true;
+                    this._logger.writeInfo("Token loaded from cache.");
                     return;
                 }
             } catch (e) {
@@ -56,8 +57,10 @@ export default class ImgurUploader implements IUploader {
             // Store to cache
             await fsp.writeFile(storage, JSON.stringify(result), 'utf-8');
             this._enabled = true;
+            this._logger.writeInfo("Imgur token received.")
         } catch (e) {
             this._enabled = false;
+            this._logger.writeError("Imgur token failed to received. Uploader is disabled.");
         }
     }
 
