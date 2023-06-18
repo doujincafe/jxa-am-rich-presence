@@ -1,6 +1,6 @@
 {
   "name": "jxa-apple-music",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "JXA powered rich presence for Apple Music on Mac",
   "main": "./src/Main.ts",
   "bin": {
@@ -11,9 +11,7 @@
     "url": "git+https://github.com/fumiichan/jxa-am-rich-presence.git"
   },
   "scripts": {
-    "prebuild": "rm -rf ./dist && tsc -p ./tsconfig.json",
-    "build": "esbuild ./dist/src/Main.js --bundle --platform=node --outfile=./dist/jxa-am-drp.js && pkg --no-bytecode --public .",
-    "postbuild": "rm -rf ./dist"
+    "build": "rm -rf ./dist && tsc -p ./tsconfig.json && esbuild ./dist/Main.js --bundle --platform=node --outfile=./dist/jxa-am-drp.js && pkg --no-bytecode --public . && rm -rf ./dist"
   },
   "author": "Aiko Fujimoto",
   "license": "MIT",

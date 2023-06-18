@@ -9,19 +9,20 @@ import axios from "axios";
 import catcher, {Oauth2Response} from "./oauth2/catcher";
 import fetchAlbumArt from "../applescript/fetchAlbumArt";
 import crypto from "crypto";
-import config from "../../config";
+import {Configuration} from "../config/config.type";
 
 export default class ImgurUploader implements IUploader {
-    private readonly _clientId: string = config.uploader.imgur.clientId;
+    private readonly _clientId: string;
     private _secret?: Oauth2Response;
     private _enabled: boolean = false;
 
     private readonly _cache: Cache;
     private readonly _logger: ILogger;
 
-    constructor(cache: Cache, logger: ILogger) {
+    constructor(cache: Cache, logger: ILogger, config: Configuration) {
         this._cache = cache;
         this._logger = logger;
+        this._clientId = config.uploader.imgur.clientId;
 
         if (config.uploader.enabled) {
             this.init().catch(e => logger.writeError(e.message));

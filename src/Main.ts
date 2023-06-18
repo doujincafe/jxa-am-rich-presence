@@ -6,16 +6,17 @@ import ConsoleLogger from "./logger/ConsoleLogger";
 import DiscordRichPresence, {RichPresenceContents} from "./DiscordRichPresence";
 import Uploader from "./uploaders/Uploader";
 import {Application as InternalApplicationType} from "@jxa/types";
-import config from '../config';
 import ImgurUploader from "./uploaders/ImgurUploader";
 import {IUploader} from "./uploaders/IUploader";
+import ConfigManager from "./config/ConfigManager";
 
+const config = new ConfigManager().Config;
 const cache = new Cache();
 const logger = new ConsoleLogger();
-const richPresence = new DiscordRichPresence(config.clientId, logger);
+const richPresence = new DiscordRichPresence(config.discord.clientId, logger);
 const uploader: IUploader = config.uploader.use === 'imgur'
-    ? new ImgurUploader(cache, logger)
-    : new Uploader(cache, logger);
+    ? new ImgurUploader(cache, logger, config)
+    : new Uploader(cache, logger, config);
 
 let started = false;
 
@@ -67,10 +68,10 @@ async function runPresence() {
                 richPresence.applyState({
                     state: 'Idle',
                     details: 'Player at idle state.',
-                    largeImageKey: config.clientLargeImageDefault,
-                    largeImageText: config.clientLargeImageText,
-                    smallImageKey: config.playbackAssets.stopped,
-                    smallImageText: 'Stopped',
+                    largeImageKey: config.discord.assets.large.key,
+                    largeImageText: config.discord.assets.large.text,
+                    smallImageKey: config.discord.assets.small.stopped.key,
+                    smallImageText: config.discord.assets.small.stopped.text,
                     instance: false
                 });
 
@@ -88,10 +89,10 @@ async function runPresence() {
             const state: RichPresenceContents = {
                 details: playback.album,
                 state: `${playback.artist} - ${playback.title}`,
-                largeImageKey: resource ?? config.clientLargeImageDefault,
+                largeImageKey: resource ?? config.discord.assets.large.key,
                 largeImageText: playback.album,
-                smallImageKey: playback.playbackStatus === 'playing' ? config.playbackAssets.playing : config.playbackAssets.paused,
-                smallImageText: playback.playbackStatus === 'playing' ? 'Playing' : 'Paused',
+                smallImageKey: playback.playbackStatus === 'playing' ? config.discord.assets.small.playing.key : config.discord.assets.small.paused.key,
+                smallImageText: playback.playbackStatus === 'playing' ? config.discord.assets.small.playing.text : config.discord.assets.small.paused.text,
                 instance: false
             };
 

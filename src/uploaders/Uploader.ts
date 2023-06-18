@@ -3,9 +3,9 @@ import Cache from '../Cache.js';
 import crypto from 'crypto';
 import fetchAlbumArt from "../applescript/fetchAlbumArt";
 import ILogger from "../logger/ILogger";
-import config from '../../config';
 import {DateTime} from "luxon";
 import {IUploader} from "./IUploader";
+import {Configuration} from "../config/config.type";
 
 export default class Uploader implements IUploader {
     private _uploaderInstance: AxiosInstance | null = null;
@@ -13,13 +13,17 @@ export default class Uploader implements IUploader {
     private readonly _logger: ILogger;
     private _nextUpdate: number = 0;
 
-    private readonly _baseURL: string = config.uploader.custom.serverHostname;
-    private readonly _username: string = config.uploader.custom.serverUsername;
-    private readonly _password: string = config.uploader.custom.serverPassword;
+    private readonly _baseURL: string;
+    private readonly _username: string;
+    private readonly _password: string;
 
-    constructor(cache: Cache, logger: ILogger) {
+    constructor(cache: Cache, logger: ILogger, config: Configuration) {
         this._cache = cache;
         this._logger = logger;
+
+        this._baseURL = config.uploader.custom.hostname;
+        this._username = config.uploader.custom.username;
+        this._password = config.uploader.custom.password;
     }
 
     private async refreshJob() {
