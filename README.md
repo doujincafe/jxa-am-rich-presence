@@ -83,7 +83,7 @@ After making changes, save the configuration and restart the application.
 ### How to build
 
 - `pnpm install`
-- `pnpm run build --`
+- `pnpm run build`
 
 ## License
 
